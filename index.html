@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ET-Phone-Home | Asynchronous Media Paging</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ET-Phone-Home</h1>
+            <p class="subtitle">Asynchronous Media Paging System</p>
+            <div id="connectionStatus" class="status-badge">Disconnected</div>
+        </header>
+
+        <main>
+            <!-- Input Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="audio">Audio Message</button>
+                <button class="tab-button" data-tab="video">Video Message</button>
+                <button class="tab-button" data-tab="delivery">Delivery Alerts</button>
+            </div>
+
+            <!-- Audio Tab -->
+            <section id="audio" class="tab-content active">
+                <div class="card">
+                    <h2>Record Audio Message</h2>
+                    <p class="hint">Record a voice announcement (mono, 16-22.05kHz, max 500KB)</p>
+
+                    <div class="controls">
+                        <button id="startAudioBtn" class="btn btn-primary">Start Recording</button>
+                        <button id="stopAudioBtn" class="btn btn-danger" disabled>Stop Recording</button>
+                        <button id="playAudioBtn" class="btn btn-secondary" disabled>Play Preview</button>
+                        <button id="clearAudioBtn" class="btn btn-outline" disabled>Clear</button>
+                    </div>
+
+                    <div id="audioStatus" class="status-message"></div>
+                    <div class="progress-bar">
+                        <div id="audioProgress" class="progress-fill"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="audioCaption">Caption (optional)</label>
+                        <input type="text" id="audioCaption" placeholder="Add a caption for this message">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="audioTarget">Target Device ID</label>
+                        <input type="text" id="audioTarget" placeholder="e.g., freenove-001" required>
+                    </div>
+
+                    <button id="uploadAudioBtn" class="btn btn-success" disabled>Upload to Device</button>
+                </div>
+            </section>
+
+            <!-- Video Tab -->
+            <section id="video" class="tab-content">
+                <div class="card">
+                    <h2>Capture Video Message</h2>
+                    <p class="hint">Record a video clip (240×240 or 320×240, high compression)</p>
+
+                    <div class="controls">
+                        <button id="startVideoBtn" class="btn btn-primary">Start Recording</button>
+                        <button id="stopVideoBtn" class="btn btn-danger" disabled>Stop Recording</button>
+                        <button id="playVideoBtn" class="btn btn-secondary" disabled>Play Preview</button>
+                        <button id="clearVideoBtn" class="btn btn-outline" disabled>Clear</button>
+                    </div>
+
+                    <div id="videoStatus" class="status-message"></div>
+                    <div class="progress-bar">
+                        <div id="videoProgress" class="progress-fill"></div>
+                    </div>
+
+                    <video id="videoPreview" class="preview-media"></video>
+
+                    <div class="form-group">
+                        <label for="videoCaption">Caption</label>
+                        <input type="text" id="videoCaption" placeholder="Add text overlay for this video">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="videoTarget">Target Device ID</label>
+                        <input type="text" id="videoTarget" placeholder="e.g., freenove-001" required>
+                    </div>
+
+                    <button id="uploadVideoBtn" class="btn btn-success" disabled>Upload to Device</button>
+                </div>
+            </section>
+
+            <!-- Delivery Alerts Tab -->
+            <section id="delivery" class="tab-content">
+                <div class="card">
+                    <h2>Delivery Alerts</h2>
+                    <p class="hint">Real-time status of uploaded messages</p>
+
+                    <div id="alertsList" class="alerts-container">
+                        <p class="placeholder">No alerts yet. Upload a message to see status.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 ET-Phone-Home. Decoupled edge media paging architecture.</p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/media.js"></script>
+    <script src="js/uploader.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
