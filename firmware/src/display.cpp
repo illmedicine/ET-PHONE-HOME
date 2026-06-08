@@ -4,6 +4,8 @@
 Display::Display() : _blPin(9) {}
 
 void Display::init() {
+    // Explicit SPI init for ESP32-S3 before TFT_eSPI touches the bus
+    SPI.begin(12, -1, 11, 10);
     _tft.init();
     _tft.setRotation(0); // 0 for round display
     _tft.fillScreen(TFT_BLACK);
@@ -12,7 +14,7 @@ void Display::init() {
 }
 
 void Display::setBrightness(uint8_t brightness) {
-    analogWrite(_blPin, brightness);
+    digitalWrite(_blPin, brightness > 0 ? HIGH : LOW);
 }
 
 void Display::showLogo() {

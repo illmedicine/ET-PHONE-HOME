@@ -1,24 +1,9 @@
-/**
- * ET-Phone-Home Firmware
- * Freenove ESP32-S3 with GC9A01 240x240 Round LCD
- *
- * Boot sequence:
- *  1. Show logo
- *  2. Load saved WiFi credentials from Preferences (NVS)
- *  3. Try auto-connect; if none saved or fails -> AP mode
- *  4. On WiFi connect -> register device in Firebase RTDB
- *  5. Poll for messages, update heartbeat
- */
-
 #include <Arduino.h>
 #include "display.h"
 #include "wifi_manager.h"
 #include "firebase_client.h"
 
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
-static const char* DEVICE_ID = "freenove-001";   // Change per device
+static const char* DEVICE_ID = "freenove-001";
 static const char* FIREBASE_HOST = "https://etphone-d829e.firebaseio.com";
 static const char* FIREBASE_API_KEY = "AIzaSyBjrCgXfr_csV72_fxGW98xv-brJrgZxPU";
 
@@ -26,9 +11,6 @@ static const unsigned long LOGO_DISPLAY_MS = 3000;
 static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 20000;
 static const unsigned long MESSAGE_POLL_INTERVAL_MS = 5000;
 
-// ---------------------------------------------------------------------------
-// Globals
-// ---------------------------------------------------------------------------
 Display display;
 WiFiManager wifiManager;
 FirebaseClient firebaseClient(FIREBASE_HOST, FIREBASE_API_KEY);
@@ -46,9 +28,6 @@ AppState appState = AppState::BOOT_LOGO;
 unsigned long stateTimer = 0;
 unsigned long lastPoll = 0;
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
     delay(500);
@@ -62,9 +41,6 @@ void setup() {
     firebaseClient.setDeviceId(DEVICE_ID);
 }
 
-// ---------------------------------------------------------------------------
-// State machine helpers
-// ---------------------------------------------------------------------------
 void transitionTo(AppState next) {
     appState = next;
     stateTimer = millis();
@@ -78,7 +54,6 @@ void handleBootLogo() {
 }
 
 void handleWiFiSetup() {
-    // WiFiManager::begin() already triggered connection or AP
     WiFiState ws = wifiManager.getState();
 
     if (ws == WiFiState::CONNECTED) {
@@ -102,7 +77,6 @@ void handleWiFiSetup() {
         return;
     }
 
-    // If somehow still disconnected, keep showing scanning
     display.showWiFiScanning();
 }
 
@@ -118,7 +92,6 @@ void handleWiFiConnecting() {
     }
 
     if (ws == WiFiState::DISCONNECTED || ws == WiFiState::AP_MODE) {
-        // Connection failed or timed out -> AP mode
         Serial.println("[State] WIFI_CONNECTING -> AP_MODE (connection failed)");
         wifiManager.startAPMode();
         display.showWiFiAPMode("ET-Phone-Home-Setup", wifiManager.getIP().c_str());
@@ -126,7 +99,6 @@ void handleWiFiConnecting() {
         return;
     }
 
-    // Still connecting; timeout guard
     if (millis() - stateTimer > WIFI_CONNECT_TIMEOUT_MS) {
         Serial.println("[WiFi] Connection timeout, entering AP mode");
         wifiManager.startAPMode();
@@ -136,8 +108,7 @@ void handleWiFiConnecting() {
 }
 
 void handleAPMode() {
-    wifiManager.loop(); // Serve captive portal
-    // No exit until user submits credentials and device reboots
+    wifiManager.loop();
 }
 
 void handleOnline() {
@@ -149,38 +120,27 @@ void handleOnline() {
         return;
     }
 
-    // Heartbeat / device registration
     if (!firebaseClient.sendHeartbeat()) {
         Serial.println("[Firebase] Heartbeat failed");
     }
 
-    // Show device status on screen
     static unsigned long lastScreenUpdate = 0;
     if (millis() - lastScreenUpdate > 5000) {
         lastScreenUpdate = millis();
         display.showDeviceStatus(DEVICE_ID, true);
     }
 
-    // Poll messages
     if (millis() - lastPoll > MESSAGE_POLL_INTERVAL_MS) {
         lastPoll = millis();
         DeviceMessage msg;
         if (firebaseClient.pollMessages(&msg)) {
             Serial.printf("[Message] New %s: %s\n", msg.type.c_str(), msg.caption.c_str());
             display.showNotification(msg.caption.c_str(), msg.type.c_str());
-
-            // Acknowledge as delivered
             firebaseClient.ackMessage(msg.id.c_str(), "delivered");
-
-            // TODO: download and play media here
-            // For now we just show notification and ack
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// Main loop
-// ---------------------------------------------------------------------------
 void loop() {
     switch (appState) {
         case AppState::BOOT_LOGO:
@@ -200,6 +160,11 @@ void loop() {
             break;
         default:
             break;
+    }
+    static unsigned long lastBeat = 0;
+    if (millis() - lastBeat > 3000) {
+        lastBeat = millis();
+        Serial.printf("[HEARTBEAT] state=%d wifi=%s\n", (int)appState, wifiManager.isConnected() ? "UP" : "DOWN");
     }
     delay(50);
 }
