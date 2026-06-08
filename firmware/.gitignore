@@ -1,0 +1,10 @@
+.pio/
+.vscode/
+*.elf
+*.bin
+*.hex
+.pioenvs/
+.piolibdeps/
+.clang_complete
+.gcc-flags.json
+upload_port.txt
